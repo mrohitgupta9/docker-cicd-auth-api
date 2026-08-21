@@ -18,9 +18,11 @@ jobs:
         node-version: '18'
 
     - name: Install Dependencies
+      working-directory: ./backend
       run: npm ci
 
     - name: Run Automated Unit Tests (CI Stage)
+      working-directory: ./backend
       env:
         MONGO_URI: ${{ secrets.MONGO_URI }}
         JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -39,6 +41,7 @@ jobs:
     - name: Build and Push Docker Image (CD Stage)
       uses: docker/build-push-action@v4
       with:
-        context: .
+        context: ./backend
+        file: ./backend/Dockerfile
         push: true
         tags: ${{ secrets.DOCKER_HUB_USERNAME }}/docker-cicd-auth-api:latest
