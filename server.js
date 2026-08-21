@@ -6,7 +6,12 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Health Check Endpoint (CI/CD Pipeline isko test karega)
+// Root Endpoint (Fixes "Cannot GET /")
+app.get('/', (req, res) => {
+    res.status(200).send('CI/CD Pipeline Engine is Live & Running Perfectly!');
+});
+
+// Health Check Endpoint (CI/CD Pipeline test karta hai)
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'UP', message: 'CI/CD Pipeline Updated Successfully!' });
 });
