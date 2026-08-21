@@ -17,19 +17,22 @@ const allowedOrigins = [
   process.env.CLIENT_URL
 ].filter(Boolean);
 
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl) or matched origins / Vercel previews
+    // Allow requests with no origin (mobile apps, postman) or matched Vercel domains
     if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
-      callback(null, true); // Permissive fallback for smooth integration
+      callback(new Error('Not allowed by CORS CORS_ERROR'));
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
-}));
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Handle CORS Preflight Requests
 
 // Root Route for Easy Render Ping & Verification
 app.get('/', (req, res) => {
@@ -41,9 +44,11 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'UP', message: 'CyberSafe Engine Running Perfectly' });
 });
 
-// Database Connection
+// Database Connection Initialization
 if (process.env.MONGO_URI) {
-  connectDB();
+  connectDB().catch(err => {
+    console.error('Failed to connect to MongoDB:', err.message);
+  });
 }
 
 // API Routes Binding

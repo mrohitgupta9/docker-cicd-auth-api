@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Pages Import
 import Login from '../pages/Login';
-import Signup from '../pages/Signup';
+import Register from '../pages/Register'; // Direct Register component import
 import Dashboard from '../pages/Dashboard';
 import Scanner from '../pages/Scanner';
 import Database from '../pages/Database';
@@ -23,6 +23,12 @@ const ProtectedRoute = ({ token, children }) => {
 export default function AppRoutes({ token, user, onLogin, onLogout }) {
   return (
     <Routes>
+      {/* Root Base Path Redirect */}
+      <Route
+        path="/"
+        element={<Navigate to={token ? "/dashboard" : "/login"} replace />}
+      />
+
       {/* Public Routes */}
       <Route
         path="/login"
@@ -30,10 +36,18 @@ export default function AppRoutes({ token, user, onLogin, onLogout }) {
           token ? <Navigate to="/dashboard" replace /> : <Login onLogin={onLogin} />
         }
       />
+      
+      {/* Supporting Both /register and /signup paths for seamless navigation */}
+      <Route
+        path="/register"
+        element={
+          token ? <Navigate to="/dashboard" replace /> : <Register />
+        }
+      />
       <Route
         path="/signup"
         element={
-          token ? <Navigate to="/dashboard" replace /> : <Signup />
+          token ? <Navigate to="/dashboard" replace /> : <Register />
         }
       />
 
@@ -42,17 +56,17 @@ export default function AppRoutes({ token, user, onLogin, onLogout }) {
         path="/*"
         element={
           <ProtectedRoute token={token}>
-            <div className="min-h-screen bg-[#0B0F19] text-slate-100 font-sans flex">
+            <div className="min-h-screen bg-[#0A0E17] text-slate-100 font-sans flex">
               <Sidebar onLogout={onLogout} />
-              <div className="flex-1 flex flex-col min-h-screen">
+              <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
                 <Navbar user={user} onLogout={onLogout} />
-                <main className="p-6 max-w-7xl w-full mx-auto flex-1">
+                <main className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto flex-1">
                   <Routes>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/scanner" element={<Scanner token={token} />} />
                     <Route path="/database" element={<Database token={token} />} />
                     
-                    {/* Default Route Redirect */}
+                    {/* Catch-all Fallback for authenticated nested routes */}
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 </main>
