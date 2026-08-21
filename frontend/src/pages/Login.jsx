@@ -1,97 +1,34 @@
 import React, { useState } from 'react';
+import { loginUser } from '../api/authService';
 
-export default function Login({ onLogin, onSwitchToSignup }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+export default function Login() {
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        onLogin(data.token, { name: email.split('@')[0], email });
-      } else {
-        setError(data.message || 'Invalid credentials');
-      }
+      await loginUser(formData);
+      window.location.href = '/dashboard';
     } catch (err) {
-      setError('Cannot connect to backend server. Check port 5000.');
-    } finally {
-      setLoading(false);
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex items-center justify-center p-4">
-      <div className="bg-[#111827] border border-[#1E293B] p-8 rounded-2xl max-w-md w-full shadow-2xl space-y-6">
-        <div className="text-center">
-          <div className="w-12 h-12 bg-cyan-950 border border-cyan-500/40 rounded-xl flex items-center justify-center text-cyan-400 text-2xl mx-auto mb-3 shadow-[0_0_15px_rgba(6,182,212,0.35)]">
-            🛡️
-          </div>
-          <h2 className="text-2xl font-bold text-white">Welcome Back</h2>
-          <p className="text-xs text-slate-400 mt-1">Sign in to your CyberSafe account</p>
-        </div>
-
-        {error && (
-          <div className="p-3 bg-red-950/50 border border-red-500/50 rounded-xl text-red-400 text-xs text-center">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="text-xs text-slate-400 block mb-1">Email Address</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="analyst@cybersafe.io"
-              className="w-full bg-[#0B0F19] border border-[#1E293B] rounded-xl p-3 text-sm text-white focus:outline-none focus:border-cyan-500"
-            />
-          </div>
-
-          <div>
-            <label className="text-xs text-slate-400 block mb-1">Password</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full bg-[#0B0F19] border border-[#1E293B] rounded-xl p-3 text-sm text-white focus:outline-none focus:border-cyan-500"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-cyan-500 hover:bg-cyan-400 text-[#0B0F19] font-bold py-3 rounded-xl text-sm transition shadow-[0_0_15px_rgba(6,182,212,0.35)] cursor-pointer disabled:opacity-50"
-          >
-            {loading ? 'Authenticating...' : 'Login'}
-          </button>
-        </form>
-
-        <div className="text-center">
-          <p className="text-xs text-slate-400">
-            Don't have an account?{' '}
-            <button onClick={onSwitchToSignup} className="text-cyan-400 font-semibold hover:underline cursor-pointer">
-              Sign Up
-            </button>
-          </p>
-        </div>
-      </div>
-    </div>
+    <form onSubmit={handleSubmit}>
+      {error && <p className="text-red-500">{error}</p>}
+      <input 
+        type="email" 
+        onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
+        placeholder="Email" 
+      />
+      <input 
+        type="password" 
+        onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
+        placeholder="Password" 
+      />
+      <button type="submit">Login</button>
+    </form>
   );
 }
