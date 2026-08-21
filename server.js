@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
@@ -10,27 +11,26 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Database Connection (Ensures DB connects during Jest tests as well)
+// Serve Static Frontend Files (public folder)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Database Connection
 if (process.env.MONGO_URI) {
   connectDB();
 }
 
-// Basic Endpoints
-app.get('/', (req, res) => {
-  res.status(200).send('CyberSafe Security Engine & CI/CD Pipeline is Live!');
-});
-
+// Health Check Endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'UP', message: 'CyberSafe Engine Running Perfectly' });
 });
 
-// Routes Binding
+// API Routes Binding
 app.use('/api/auth', authRoutes);
 app.use('/api/cyber', cyberRoutes);
 
-// Fallback Route
-app.use((req, res) => {
-  res.status(404).json({ message: 'Route Not Found' });
+// Root & Fallback Route - Serves the CyberSafe UI Dashboard
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 const PORT = process.env.PORT || 5000;
