@@ -3,15 +3,15 @@ const cors = require('cors');
 require('dotenv').config();
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
-const cyberRoutes = require('./routes/cyberRoutes'); // CyberSafe routes imported
+const cyberRoutes = require('./routes/cyberRoutes');
 
 const app = express();
 
 app.use(express.json());
 app.use(cors());
 
-// Database Connection
-if (process.env.NODE_ENV !== 'test' && process.env.MONGO_URI) {
+// Database Connection (Ensures DB connects during Jest tests as well)
+if (process.env.MONGO_URI) {
   connectDB();
 }
 
@@ -26,7 +26,7 @@ app.get('/health', (req, res) => {
 
 // Routes Binding
 app.use('/api/auth', authRoutes);
-app.use('/api/cyber', cyberRoutes); // CyberSafe API mounted
+app.use('/api/cyber', cyberRoutes);
 
 // Fallback Route
 app.use((req, res) => {
