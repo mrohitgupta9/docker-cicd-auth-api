@@ -8,7 +8,7 @@ app.use(cors());
 
 // Health Check Endpoint (CI/CD Pipeline isko test karega)
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'UP', message: 'CI/CD Engine is Active & Healthy!' });
+    res.status(200).json({ status: 'UP', message: 'CI/CD Pipeline Updated Successfully!' });
 });
 
 const PORT = process.env.PORT || 5000;
