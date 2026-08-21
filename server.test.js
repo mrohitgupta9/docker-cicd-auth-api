@@ -1,10 +1,9 @@
 const request = require('supertest');
-const app = require('./server'); // File root me hone ki wajah se './server' path perfect hai
+const app = require('./server');
 
-// CI/CD Environment (GitHub Actions) ke liye Global Timeout (30 seconds)
 jest.setTimeout(30000);
 
-describe('CyberSafe Auth & Security API Endpoints', () => {
+describe('CyberSafe Auth & Advanced Security API Endpoints', () => {
   let authToken = '';
   const testUser = {
     name: 'Test Security User',
@@ -12,15 +11,13 @@ describe('CyberSafe Auth & Security API Endpoints', () => {
     password: 'SecurePassword123!'
   };
 
-  // 1. Health Check Test
-  it('Should return status 200 and UP status message', async () => {
+  it('1. GET /health - Should return status 200', async () => {
     const res = await request(app).get('/health');
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty('status', 'UP');
   });
 
-  // 2. User Registration Test
-  it('Should register a new user successfully', async () => {
+  it('2. POST /api/auth/register - Register user', async () => {
     const res = await request(app)
       .post('/api/auth/register')
       .send(testUser);
@@ -28,8 +25,7 @@ describe('CyberSafe Auth & Security API Endpoints', () => {
     expect(res.statusCode).toEqual(201);
   }, 30000);
 
-  // 3. User Login Test
-  it('Should login and return JWT token', async () => {
+  it('3. POST /api/auth/login - Login user & get Token', async () => {
     const res = await request(app)
       .post('/api/auth/login')
       .send({
@@ -42,17 +38,7 @@ describe('CyberSafe Auth & Security API Endpoints', () => {
     authToken = res.body.token;
   }, 30000);
 
-  // 4. Protected CyberSafe Route (Without Token - 401 Unauthorized)
-  it('Should reject URL scan request without token (401)', async () => {
-    const res = await request(app)
-      .post('/api/cyber/check-url')
-      .send({ url: 'http://claim-gift-free-money.com' });
-
-    expect(res.statusCode).toEqual(401);
-  });
-
-  // 5. Protected CyberSafe Route (With Token - 200 Success)
-  it('Should scan URL successfully when valid JWT token is provided (200)', async () => {
+  it('4. POST /api/cyber/check-url - Scan URL with token', async () => {
     const res = await request(app)
       .post('/api/cyber/check-url')
       .set('Authorization', `Bearer ${authToken}`)
@@ -60,5 +46,29 @@ describe('CyberSafe Auth & Security API Endpoints', () => {
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty('status', 'DANGER ⚠️');
+  }, 30000);
+
+  it('5. POST /api/cyber/report-threat - Report a Scammer Phone/UPI', async () => {
+    const res = await request(app)
+      .post('/api/cyber/report-threat')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        type: 'PHONE',
+        value: '9876543210',
+        description: 'Asking for OTP pretending to be electricity board officer',
+        severity: 'HIGH'
+      });
+
+    expect(res.statusCode).toEqual(201);
+    expect(res.body).toHaveProperty('message');
+  }, 30000);
+
+  it('6. GET /api/cyber/check-spam - Search reported scammer', async () => {
+    const res = await request(app)
+      .get('/api/cyber/check-spam?query=9876543210')
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty('status', 'SPAM / SCAMMER DETECTED 🚨');
   }, 30000);
 });

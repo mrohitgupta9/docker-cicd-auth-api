@@ -14,7 +14,8 @@ const ThreatReportSchema = new mongoose.Schema({
   value: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    lowercase: true
   },
   description: {
     type: String,
