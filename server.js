@@ -10,7 +10,7 @@ const app = express();
 // Body Parser Middleware
 app.use(express.json());
 
-// CORS Configuration
+// Enhanced CORS Configuration for Vercel & Localhost
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -19,10 +19,11 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow requests with no origin (like mobile apps, curl) or matched origins / Vercel previews
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
-      callback(null, true); // Local development flexibility
+      callback(null, true); // Permissive fallback for smooth integration
     }
   },
   credentials: true,
@@ -30,15 +31,20 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Database Connection
-if (process.env.MONGO_URI) {
-  connectDB();
-}
+// Root Route for Easy Render Ping & Verification
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'CyberSafe API Gateway Online' });
+});
 
 // Health Check Endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'UP', message: 'CyberSafe Engine Running Perfectly' });
 });
+
+// Database Connection
+if (process.env.MONGO_URI) {
+  connectDB();
+}
 
 // API Routes Binding
 app.use('/api/auth', authRoutes);
