@@ -13,7 +13,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Setup Node.js Environment
-      uses: actions/checkout@v3
+      uses: actions/setup-node@v3
       with:
         node-version: '18'
 
@@ -21,6 +21,10 @@ jobs:
       run: npm ci
 
     - name: Run Automated Unit Tests (CI Stage)
+      env:
+        MONGO_URI: ${{ secrets.MONGO_URI }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        NODE_ENV: test
       run: npm test
 
     - name: Set up Docker Buildx
